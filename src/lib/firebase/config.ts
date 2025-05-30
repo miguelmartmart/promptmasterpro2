@@ -1,8 +1,8 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
-// import { getFirestore, type Firestore } from 'firebase/firestore'; // Example for Firestore
-// import { getAnalytics, type Analytics } from "firebase/analytics"; // Example for Analytics
+import { getAnalytics, isSupported as isAnalyticsSupported, type Analytics } from "firebase/analytics";
+import { getPerformance, type FirebasePerformance } from "firebase/performance";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,68 +11,91 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth;
-// let db: Firestore; // Example for Firestore
-// let analytics: Analytics | null = null; // Example for Analytics
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let analytics: Analytics | null = null;
+let perf: FirebasePerformance | null = null;
+
 
 const checkFirebaseConfig = () => {
-  if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+  let validConfig = true;
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY" || firebaseConfig.apiKey === "AIzaSyAZs401-CrplcKABS__YkpTFrSo4PNx82g") { // Added your specific placeholder to catch it
     console.error(
       "🛑 FIREBASE CONFIGURATION ERROR: API Key is missing or is still a placeholder.\n" +
-      "Please ensure you have a .env.local file in the root of your project with your actual Firebase credentials.\n" +
-      "Example .env.local content:\n" +
-      "NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyB... (your actual key)\n" +
-      "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com\n" +
-      "NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id\n" +
-      "...\n" +
-      "You can find these values in your Firebase project settings."
+      "Please ensure you have a .env.local file in the root of your project with your actual Firebase credentials for NEXT_PUBLIC_FIREBASE_API_KEY.\n" +
+      "You can find these values in your Firebase project settings (Project settings > General > Your apps > Web app > SDK setup and configuration)."
     );
-    // Firebase will throw its own error, but this provides more specific guidance.
-    return false;
+    validConfig = false;
   }
-  return true;
+  // Check for other critical placeholder values if needed
+  if (!firebaseConfig.projectId || firebaseConfig.projectId === "YOUR_PROJECT_ID" || firebaseConfig.projectId === "promptmasterpro-461411") {
+     console.warn(
+      "⚠️ FIREBASE CONFIGURATION WARNING: Project ID might be a placeholder (YOUR_PROJECT_ID or the example ID promptmasterpro-461411).\n" +
+      "Ensure NEXT_PUBLIC_FIREBASE_PROJECT_ID in .env.local is set to your actual Firebase Project ID."
+    );
+    // Not setting validConfig to false for projectId, as apiKey is the primary blocker for init
+  }
+
+  if (!firebaseConfig.measurementId && (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID)) {
+    console.warn(
+      "⚠️ FIREBASE ANALYTICS WARNING: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID is missing in your .env.local file.\n" +
+      "Firebase Analytics will not be initialized. This ID is required if you intend to use Firebase Analytics as declared in your privacy policy.\n" +
+      "You can find this in Firebase project settings > General > Your apps > Web app > SDK setup and configuration."
+    );
+  }
+  return validConfig;
 };
 
-if (typeof window !== 'undefined' && !getApps().length) {
-  if (checkFirebaseConfig()) {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    // db = getFirestore(app); // Example for Firestore
-    // if (firebaseConfig.measurementId) { // Example for Analytics
-    //   analytics = getAnalytics(app);
-    // }
+if (typeof window !== 'undefined' && checkFirebaseConfig()) {
+  if (!getApps().length) {
+    try {
+      app = initializeApp(firebaseConfig);
+    } catch (e) {
+      console.error("Error initializing Firebase app:", e);
+      app = null; // Ensure app is null if initialization fails
+    }
   } else {
-    // Prevent further Firebase calls if config is invalid
-    // @ts-ignore
-    app = null; 
-    // @ts-ignore
-    auth = null;
-  }
-} else if (typeof window !== 'undefined') {
-  // This case implies app was already initialized, but good to be safe.
-  if (checkFirebaseConfig()) {
     app = getApp();
-    auth = getAuth(app);
-    // db = getFirestore(app); // Example for Firestore
-    // if (firebaseConfig.measurementId) { // Example for Analytics
-    //   analytics = getAnalytics(app);
-    // }
-  } else {
-    // @ts-ignore
-    app = null;
-    // @ts-ignore
-    auth = null;
   }
-} else {
-  // Handle server-side if needed, though auth is primarily client-side
-  // For server-side Admin SDK, setup is different. This config is for client SDK.
+
+  if (app) {
+    try {
+      auth = getAuth(app);
+    } catch (e) {
+      console.error("Error getting Firebase Auth instance:", e);
+      auth = null;
+    }
+
+    if (firebaseConfig.measurementId) {
+      isAnalyticsSupported().then((supported) => {
+        if (supported && app) {
+          try {
+            analytics = getAnalytics(app);
+          } catch (e) {
+            console.error("Error initializing Firebase Analytics:", e);
+            analytics = null;
+          }
+        } else if (!supported) {
+          console.log("Firebase Analytics is not supported in this browser environment.");
+        }
+      }).catch(e => {
+         console.error("Error checking Analytics support:", e);
+      });
+    }
+
+    try {
+      perf = getPerformance(app);
+    } catch (e) {
+      console.error("Error initializing Firebase Performance Monitoring:", e);
+      perf = null;
+    }
+  }
 }
+
 
 const googleAuthProvider = new GoogleAuthProvider();
 
-// @ts-ignore
-export { app, auth, googleAuthProvider /*, db, analytics */ };
+export { app, auth, googleAuthProvider, analytics, perf };
