@@ -3,6 +3,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'; // Added this import
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,11 +42,11 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
           <Image 
-            src="https://placehold.co/80x80.png?text=PCP" 
+            src="https://placehold.co/120x40.png?text=PromptCraft" 
             alt="PromptCraft Pro Logo" 
             width={80} 
             height={80} 
-            className="mx-auto mb-4 rounded-lg" // Changed to rounded-lg for a bit more modern feel
+            className="mx-auto mb-4 rounded-lg" 
             data-ai-hint="abstract geometric logo"
           />
           <CardTitle className="text-3xl font-bold">Welcome to PromptCraft Pro</CardTitle>
