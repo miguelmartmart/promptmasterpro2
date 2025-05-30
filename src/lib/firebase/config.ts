@@ -19,7 +19,7 @@ let auth: Auth | null = null;
 let analytics: Analytics | null = null;
 let perf: FirebasePerformance | null = null;
 
-// Your specific API key, if this is the one you intend to use.
+// This key was confirmed by the user.
 const USER_SPECIFIC_API_KEY = "AIzaSyAZs401-CrplcKABS__YkpTFrSo4PNx82g";
 
 const checkFirebaseConfig = (): boolean => {
@@ -47,12 +47,15 @@ const checkFirebaseConfig = (): boolean => {
   if (!firebaseConfig.projectId || firebaseConfig.projectId === "YOUR_PROJECT_ID" || firebaseConfig.projectId === "promptmasterpro-461411") {
      console.warn(
       "⚠️ FIREBASE CONFIGURATION WARNING: Project ID (NEXT_PUBLIC_FIREBASE_PROJECT_ID) in .env.local might be a placeholder or the example ID 'promptmasterpro-461411'.\n" +
-      "Ensure it is set to your actual Firebase Project ID: " + firebaseConfig.projectId 
+      "Ensure it is set to your actual Firebase Project ID: " + firebaseConfig.projectId
     );
+     // If API key was also bad, this is a definite config error.
      if (!firebaseConfig.apiKey || firebaseConfig.apiKey === genericPlaceholderKey) validConfig = false;
   }
 
   if (!firebaseConfig.measurementId && (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID)) {
+    // Only warn if it's explicitly set to undefined in env or if in production (where it's usually expected).
+    // If NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID is just not in the .env file for dev, it might be intentional.
     if (process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID !== undefined || process.env.NODE_ENV === 'production') {
         console.warn(
         "⚠️ FIREBASE ANALYTICS WARNING: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID is missing or empty in your .env.local file.\n" +
@@ -73,7 +76,13 @@ if (typeof window !== 'undefined') {
         app = initializeApp(firebaseConfig);
       } catch (e: any) {
         console.error("Error initializing Firebase app:", e);
-        app = null; 
+        if (e.message && e.message.includes("firebaseinstallations.googleapis.com")) {
+          console.warn(
+            `🆘 Firebase App Initialization (initializeApp) failed potentially due to 'Firebase Installations API' not being enabled. ` +
+            `Please go to the Google Cloud Console, select project '${firebaseConfig.projectId || "YOUR_PROJECT_ID"}', navigate to 'APIs & Services > Library', search for 'Firebase Installations API', and ensure it is ENABLED.`
+          );
+        }
+        app = null;
       }
     } else {
       app = getApp();
@@ -86,9 +95,15 @@ if (typeof window !== 'undefined') {
         console.error("Error getting Firebase Auth instance:", e);
         if (e.message && (e.message.includes("identitytoolkit.googleapis.com") || e.message.includes("auth/"))) {
              console.warn(
-              "⚠️ Firebase Auth initialization failed. This might be due to the 'Identity Toolkit API' not being enabled in your Google Cloud Project or API key restrictions. " +
-              "Please check your GCP console for project '" + (firebaseConfig.projectId || "YOUR_PROJECT_ID") + "'."
+              `⚠️ Firebase Auth initialization failed. This might be due to the 'Identity Toolkit API' not being enabled in your Google Cloud Project or API key restrictions. ` +
+              `Please check your GCP console for project '${firebaseConfig.projectId || "YOUR_PROJECT_ID"}' (APIs & Services > Library).`
             );
+        }
+        if (e.message && e.message.includes("firebaseinstallations.googleapis.com")) {
+          console.warn(
+            `🆘 Firebase Auth (getAuth) failed potentially due to 'Firebase Installations API' not being enabled. ` +
+            `Please go to the Google Cloud Console, select project '${firebaseConfig.projectId || "YOUR_PROJECT_ID"}', navigate to 'APIs & Services > Library', search for 'Firebase Installations API', and ensure it is ENABLED.`
+          );
         }
         auth = null;
       }
@@ -102,8 +117,8 @@ if (typeof window !== 'undefined') {
               console.error("Error initializing Firebase Analytics:", e);
               if (e.message && e.message.includes("firebaseinstallations.googleapis.com")) {
                 console.warn(
-                  "⚠️ Firebase Analytics initialization failed. This is likely because the 'Firebase Installations API' is not enabled in your Google Cloud Project. " +
-                  "Please go to the Google Cloud Console, select project '" + (firebaseConfig.projectId || "YOUR_PROJECT_ID") + "', navigate to 'APIs & Services > Library', search for 'Firebase Installations API', and ensure it is ENABLED."
+                  `⚠️ Firebase Analytics initialization failed. This is likely because the 'Firebase Installations API' is not enabled in your Google Cloud Project. ` +
+                  `Please go to the Google Cloud Console, select project '${firebaseConfig.projectId || "YOUR_PROJECT_ID"}', navigate to 'APIs & Services > Library', search for 'Firebase Installations API', and ensure it is ENABLED.`
                 );
               }
               analytics = null;
@@ -122,8 +137,8 @@ if (typeof window !== 'undefined') {
         console.error("Error initializing Firebase Performance Monitoring:", e);
         if (e.message && e.message.includes("firebaseinstallations.googleapis.com")) {
            console.warn(
-            "⚠️ Firebase Performance Monitoring initialization failed. This may also be related to the 'Firebase Installations API' not being enabled in your Google Cloud Project. " +
-            "Check the Google Cloud Console for project '" + (firebaseConfig.projectId || "YOUR_PROJECT_ID") + "' as described above for Analytics."
+            `⚠️ Firebase Performance Monitoring initialization failed. This may also be related to the 'Firebase Installations API' not being enabled in your Google Cloud Project. ` +
+            `Check the Google Cloud Console for project '${firebaseConfig.projectId || "YOUR_PROJECT_ID"}' as described above for Analytics.`
           );
         }
         perf = null;
