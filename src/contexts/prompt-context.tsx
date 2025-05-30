@@ -19,7 +19,8 @@ type PromptAction =
   | { type: 'ADD_PROMPT'; payload: Prompt }
   | { type: 'UPDATE_PROMPT'; payload: Prompt }
   | { type: 'DELETE_PROMPT'; payload: string } // id
-  | { type: 'TOGGLE_FAVORITE'; payload: string }; // id
+  | { type: 'TOGGLE_FAVORITE'; payload: string } // id
+  | { type: 'CLEAR_USER_DATA' }; // For clearing favorites on logout
 
 const initialState: PromptState = {
   prompts: [],
@@ -37,6 +38,7 @@ const PromptContext = createContext<{
   updatePrompt: (prompt: Prompt) => void;
   deletePrompt: (id: string) => void;
   toggleFavorite: (id: string) => void;
+  clearUserSpecificData: () => void;
 } | undefined>(undefined);
 
 function promptReducer(state: PromptState, action: PromptAction): PromptState {
@@ -64,23 +66,33 @@ function promptReducer(state: PromptState, action: PromptAction): PromptState {
       }
       return { ...state, favorites: newFavorites };
     }
+    case 'CLEAR_USER_DATA': {
+      // This clears localStorage favorites.
+      // If favorites were stored in Firestore per user, this would be handled differently (e.g., no action here or refetching for new user).
+      localStorage.removeItem(LOCAL_STORAGE_KEY_FAVORITES);
+      return { ...state, favorites: new Set() };
+    }
     default:
       return state;
   }
 }
 
 const LOCAL_STORAGE_KEY_PROMPTS = 'promptCraftPro_prompts';
-const LOCAL_STORAGE_KEY_FAVORITES = 'promptCraftPro_favorites';
+const LOCAL_STORAGE_KEY_FAVORITES = 'promptCraftPro_favorites'; // TODO: With auth, favorites should ideally be user-specific (e.g., Firestore) rather than just localStorage.
 
 export const PromptProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(promptReducer, initialState);
 
   useEffect(() => {
+    // Load initial state from localStorage or mocks
     try {
       const storedPrompts = localStorage.getItem(LOCAL_STORAGE_KEY_PROMPTS);
       const storedFavorites = localStorage.getItem(LOCAL_STORAGE_KEY_FAVORITES);
       
       const prompts = storedPrompts ? JSON.parse(storedPrompts) : mockPrompts;
+      // For favorites, only load if they are relevant to the current auth state.
+      // However, since we don't have user context here directly, we load them.
+      // Clearing them on logout (via clearUserSpecificData) is a simple approach for now.
       const favorites = storedFavorites ? new Set(JSON.parse(storedFavorites)) : new Set();
       
       dispatch({ type: 'LOAD_STATE', payload: { prompts, favorites } });
@@ -91,6 +103,7 @@ export const PromptProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // Persist state to localStorage
     if (!state.isLoading) {
       localStorage.setItem(LOCAL_STORAGE_KEY_PROMPTS, JSON.stringify(state.prompts));
       localStorage.setItem(LOCAL_STORAGE_KEY_FAVORITES, JSON.stringify(Array.from(state.favorites)));
@@ -100,7 +113,7 @@ export const PromptProvider = ({ children }: { children: ReactNode }) => {
   const addPrompt = useCallback((promptData: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newPrompt: Prompt = {
       ...promptData,
-      id: Date.now().toString(), // Simple ID generation
+      id: Date.now().toString(), 
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -120,9 +133,13 @@ export const PromptProvider = ({ children }: { children: ReactNode }) => {
     dispatch({ type: 'TOGGLE_FAVORITE', payload: id });
   }, []);
 
+  const clearUserSpecificData = useCallback(() => {
+    dispatch({ type: 'CLEAR_USER_DATA' });
+  }, []);
+
 
   return (
-    <PromptContext.Provider value={{ state, dispatch, addPrompt, updatePrompt, deletePrompt, toggleFavorite }}>
+    <PromptContext.Provider value={{ state, dispatch, addPrompt, updatePrompt, deletePrompt, toggleFavorite, clearUserSpecificData }}>
       {children}
     </PromptContext.Provider>
   );
@@ -135,4 +152,3 @@ export const usePrompts = () => {
   }
   return context;
 };
-

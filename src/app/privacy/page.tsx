@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function PrivacyPolicyPage() {
-  const lastUpdatedDate = "30 mayo 2025"; // As per your document
+  const lastUpdatedDate = "30 mayo 2025"; 
 
   return (
     <div className="container mx-auto max-w-3xl py-10 px-4">

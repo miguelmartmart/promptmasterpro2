@@ -2,17 +2,23 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Lightbulb, Heart, UserCog, Settings, Sparkles, Menu } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, Lightbulb, Heart, UserCog, Settings, Sparkles, Menu, LogIn, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/auth-context';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Skeleton } from '@/components/ui/skeleton';
 import { AffiliateAd } from '@/components/shared/affiliate-ad';
-import { Separator } from '@/components/ui/separator';
 import React, { useState, useEffect } from 'react';
 
-const navItems = [
+const publicNavItems = [
   { href: '/', label: 'Home', icon: Home },
+];
+
+const authenticatedNavItems = [
   { href: '/generate', label: 'Generate Prompt', icon: Lightbulb },
   { href: '/favorites', label: 'Favorites', icon: Heart },
   { href: '/admin', label: 'Admin', icon: UserCog },
@@ -20,13 +26,13 @@ const navItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isMobile = useIsMobile(); 
+  const router = useRouter();
+  const isMobile = useIsMobile();
+  const { user, loadingAuth, signOutUser, signInWithGoogle } = useAuth();
   
   const [showAd, setShowAd] = useState(false);
 
   useEffect(() => {
-    // Show ad with ~8% probability on page navigation (when pathname changes)
-    // This ensures it's not tied to every re-render, but to actual navigation events.
     if (Math.random() < 0.08) {
       setShowAd(true);
     } else {
@@ -34,6 +40,58 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [pathname]);
 
+  const handleLogin = async () => {
+    if (pathname === '/login') {
+      await signInWithGoogle(); // If on login page, try to sign in directly
+    } else {
+      router.push('/login'); // Otherwise, navigate to login page
+    }
+  };
+
+  const navItemsToDisplay = user ? [...publicNavItems, ...authenticatedNavItems] : publicNavItems;
+
+  const UserAvatarButton = () => {
+    if (loadingAuth) {
+      return <Skeleton className="h-10 w-10 rounded-full" />;
+    }
+    if (user) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={signOutUser}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+    return (
+      <Button onClick={handleLogin} variant="outline">
+        <LogIn className="mr-2 h-4 w-4" /> Login
+      </Button>
+    );
+  };
 
   return (
     <SidebarProvider defaultOpen={!isMobile} open={!isMobile}>
@@ -46,7 +104,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent className="p-2">
           <SidebarMenu>
-            {navItems.map((item) => (
+            {navItemsToDisplay.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref legacyBehavior>
                   <SidebarMenuButton
@@ -61,13 +119,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-4">
-          <Link href="/settings" passHref legacyBehavior>
-             <SidebarMenuButton tooltip={{ children: "Settings", className: "group-data-[collapsible=icon]:block hidden" }}>
+        <SidebarFooter className="p-4 flex flex-col gap-2">
+           <Link href="/settings" passHref legacyBehavior>
+             <SidebarMenuButton tooltip={{ children: "Settings", className: "group-data-[collapsible=icon]:block hidden" }} isActive={pathname === '/settings'}>
                 <Settings />
                 <span>Settings</span>
               </SidebarMenuButton>
           </Link>
+          <div className="group-data-[collapsible=icon]:hidden">
+            {loadingAuth ? <Skeleton className="h-10 w-full rounded-md" /> : 
+             !user && <Button onClick={handleLogin} className="w-full"><LogIn className="mr-2 h-4 w-4" />Login</Button>
+            }
+          </div>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="flex flex-col">
@@ -75,10 +138,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
              <SidebarTrigger className="md:hidden" />
              <h1 className="text-xl font-semibold">
-                {navItems.find(item => item.href === pathname)?.label || 'PromptCraft Pro'}
+                {navItemsToDisplay.find(item => item.href === pathname)?.label || 
+                 (pathname.startsWith('/prompts/') ? 'Prompt Details' : 
+                  pathname === '/login' ? 'Login' : 'PromptCraft Pro')}
              </h1>
           </div>
-          {/* Placeholder for user avatar/actions */}
+          <UserAvatarButton />
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
@@ -86,7 +151,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {showAd && <AffiliateAd />}
         <footer className="border-t p-4 text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} PromptCraft Pro. 
-          <Link href="/privacy" className="ml-2 hover:text-foreground">Privacy Policy</Link>
+          <Link href="/privacy_policy.html" target="_blank" rel="noopener noreferrer" className="ml-2 hover:text-foreground">Privacy Policy</Link>
           <Link href="/terms" className="ml-2 hover:text-foreground">Terms of Service</Link>
         </footer>
       </SidebarInset>
