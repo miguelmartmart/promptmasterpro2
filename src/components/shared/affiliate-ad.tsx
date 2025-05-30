@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -9,27 +10,27 @@ import { useState, useEffect } from 'react';
 
 const ads = [
   {
-    id: 'amazon',
-    name: 'Amazon Deals',
-    imageUrl: 'https://placehold.co/728x90.png?text=Amazon+Ad',
-    dataAiHint: 'shopping sale',
-    link: '#',
-    cta: 'Shop Now on Amazon'
+    id: 'intel-pc',
+    name: 'Intel Ultra 9 PC Deal',
+    imageUrl: 'https://placehold.co/300x50.png?text=Intel+Ultra+9+PC',
+    dataAiHint: 'gaming computer',
+    link: 'https://amzn.to/3Z41Cxe',
+    cta: 'Shop Intel PC Deal'
   },
   {
-    id: 'shein',
-    name: 'Shein Fashion',
-    imageUrl: 'https://placehold.co/728x90.png?text=Shein+Ad',
-    dataAiHint: 'fashion clothing',
-    link: '#',
-    cta: 'Discover Styles on Shein'
+    id: 'high-spec-pc',
+    name: 'High-Spec RTX 5090 PC',
+    imageUrl: 'https://placehold.co/300x50.png?text=RTX+5090+Desktop',
+    dataAiHint: 'computer hardware',
+    link: 'https://amzn.to/43wuHDQ',
+    cta: 'Explore RTX 5090 PC'
   },
   {
-    id: 'aliexpress',
+    id: 'aliexpress', // Keeping one generic for now, or could be another tech ad
     name: 'AliExpress Finds',
-    imageUrl: 'https://placehold.co/728x90.png?text=AliExpress+Ad',
+    imageUrl: 'https://placehold.co/300x50.png?text=AliExpress+Finds',
     dataAiHint: 'gadgets electronics',
-    link: '#',
+    link: '#', // Replace with actual AliExpress link if available
     cta: 'Explore AliExpress'
   }
 ];
