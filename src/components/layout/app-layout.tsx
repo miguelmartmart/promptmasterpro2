@@ -28,24 +28,22 @@ const authenticatedNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(); // Directly use the hook
   const { user, loadingAuth, signOutUser, signInWithGoogle } = useAuth();
   
   const [showAd, setShowAd] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     setIsClient(true); // Component has mounted on client
+    setCurrentYear(new Date().getFullYear()); // Set year on client mount
   }, []);
 
   useEffect(() => {
     // Determine if ad should be shown only on the client, after mount
     if (isClient) {
-      if (Math.random() < 0.08) {
-        setShowAd(true);
-      } else {
-        setShowAd(false);
-      }
+      setShowAd(Math.random() < 0.08);
     }
   }, [isClient, pathname]); // Re-evaluate on path change or when isClient becomes true
 
@@ -109,7 +107,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     if (!user) {
       return <Button onClick={handleLogin} className="w-full"><LogIn className="mr-2 h-4 w-4" />Login</Button>;
     }
-    return null; // Render nothing if user is logged in or still loading for this specific slot
+    return null;
   }
 
   return (
@@ -117,7 +115,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar collapsible="icon" variant="sidebar" side="left">
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-sidebar-primary-foreground hover:text-sidebar-accent-foreground transition-colors">
-            <Image src="https://placehold.co/120x40.png?text=PromptCraft" alt="PromptCraft Pro Logo" width={32} height={32} data-ai-hint="abstract geometric" className="group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8"/>
+            <Image src="https://placehold.co/32x32.png?text=PCP" alt="PromptCraft Pro Logo" width={32} height={32} data-ai-hint="abstract geometric logo" className="group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 rounded-sm"/>
             <span className="group-data-[collapsible=icon]:hidden">PromptCraft Pro</span>
           </Link>
         </SidebarHeader>
@@ -172,7 +170,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
         {isClient && showAd && <AffiliateAd />}
         <footer className="border-t p-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} PromptCraft Pro. 
+          © {currentYear} PromptCraft Pro. 
           <Link href="/privacy" className="ml-2 hover:text-foreground">Privacy Policy</Link>
           <Link href="/terms" className="ml-2 hover:text-foreground">Terms of Service</Link>
           <Link href="/account-deletion" className="ml-2 hover:text-foreground">Account Deletion</Link>
