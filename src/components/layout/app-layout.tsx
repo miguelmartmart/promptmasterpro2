@@ -3,9 +3,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Lightbulb, Heart, UserCog, Settings, Sparkles, Menu, LogIn, LogOut } from 'lucide-react';
+import { Home, Lightbulb, Heart, UserCog, Settings, Sparkles, Menu, LogIn, LogOut, ShieldQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset, useSidebar } from '@/components/ui/sidebar'; // Removed useSidebar from here, will get from context or direct import
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Skeleton } from '@/components/ui/skeleton';
 import { AffiliateAd } from '@/components/shared/affiliate-ad';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 const publicNavItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -27,30 +28,36 @@ const authenticatedNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isMobile = useIsMobile();
+  const isMobileHook = useIsMobile(); // Renamed to avoid conflict if useSidebar is re-added for other reasons
   const { user, loadingAuth, signOutUser, signInWithGoogle } = useAuth();
   
   const [showAd, setShowAd] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true); // Component has mounted on client
+    // Determine if ad should be shown only on the client
     if (Math.random() < 0.08) {
       setShowAd(true);
     } else {
       setShowAd(false);
     }
-  }, [pathname]);
+  }, [pathname]); // Re-evaluate on path change if needed, or empty array if only on mount
 
   const handleLogin = async () => {
     if (pathname === '/login') {
-      await signInWithGoogle(); // If on login page, try to sign in directly
+      await signInWithGoogle(); 
     } else {
-      router.push('/login'); // Otherwise, navigate to login page
+      router.push('/login'); 
     }
   };
 
   const navItemsToDisplay = user ? [...publicNavItems, ...authenticatedNavItems] : publicNavItems;
 
   const UserAvatarButton = () => {
+    if (!isClient) { // Prevents rendering during SSR or before client mount for auth-dependent UI
+      return <Skeleton className="h-10 w-10 rounded-full" />;
+    }
     if (loadingAuth) {
       return <Skeleton className="h-10 w-10 rounded-full" />;
     }
@@ -94,11 +101,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <SidebarProvider defaultOpen={!isMobile} open={!isMobile}>
+    <SidebarProvider defaultOpen={!isMobileHook} open={!isMobileHook}>
       <Sidebar collapsible="icon" variant="sidebar" side="left">
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-sidebar-primary-foreground hover:text-sidebar-accent-foreground transition-colors">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <Image src="https://placehold.co/32x32.png?text=PC" alt="PromptCraft Pro Logo" width={32} height={32} data-ai-hint="abstract geometric" />
             <span className="group-data-[collapsible=icon]:hidden">PromptCraft Pro</span>
           </Link>
         </SidebarHeader>
@@ -127,9 +134,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenuButton>
           </Link>
           <div className="group-data-[collapsible=icon]:hidden">
-            {loadingAuth ? <Skeleton className="h-10 w-full rounded-md" /> : 
-             !user && <Button onClick={handleLogin} className="w-full"><LogIn className="mr-2 h-4 w-4" />Login</Button>
-            }
+            {isClient && loadingAuth && <Skeleton className="h-10 w-full rounded-md" /> }
+            {isClient && !loadingAuth && !user && <Button onClick={handleLogin} className="w-full"><LogIn className="mr-2 h-4 w-4" />Login</Button> }
           </div>
         </SidebarFooter>
       </Sidebar>
@@ -140,7 +146,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
              <h1 className="text-xl font-semibold">
                 {navItemsToDisplay.find(item => item.href === pathname)?.label || 
                  (pathname.startsWith('/prompts/') ? 'Prompt Details' : 
-                  pathname === '/login' ? 'Login' : 'PromptCraft Pro')}
+                  pathname === '/login' ? 'Login' :
+                  pathname === '/settings' ? 'Settings' :
+                  pathname === '/account-deletion' ? 'Account Deletion' :
+                  pathname === '/privacy' ? 'Privacy Policy' : // Added this for completeness
+                  pathname === '/terms' ? 'Terms of Service' : // Added this for completeness
+                  'PromptCraft Pro')}
              </h1>
           </div>
           <UserAvatarButton />
@@ -148,11 +159,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>
-        {showAd && <AffiliateAd />}
+        {isClient && showAd && <AffiliateAd />}
         <footer className="border-t p-4 text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} PromptCraft Pro. 
-          <Link href="/privacy_policy.html" target="_blank" rel="noopener noreferrer" className="ml-2 hover:text-foreground">Privacy Policy</Link>
+          <Link href="/privacy" className="ml-2 hover:text-foreground">Privacy Policy</Link>
           <Link href="/terms" className="ml-2 hover:text-foreground">Terms of Service</Link>
+          <Link href="/account-deletion" className="ml-2 hover:text-foreground">Account Deletion</Link>
         </footer>
       </SidebarInset>
     </SidebarProvider>

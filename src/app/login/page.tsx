@@ -27,8 +27,6 @@ export default function LoginPage() {
     );
   }
   
-  // If user becomes available while on login page (e.g., due to fast auth state restoration),
-  // this will prevent rendering the login form briefly before redirect.
   if (user) {
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -43,12 +41,12 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
           <Image 
-            src="/_next/static/media/or3nQ6H_1_WfwkMZI_qYFrcdmhHkjko-s.p.be19f591.woff2" // Using one of the existing font/image as a placeholder
+            src="https://placehold.co/80x80.png?text=PCP" 
             alt="PromptCraft Pro Logo" 
             width={80} 
             height={80} 
-            className="mx-auto mb-4 rounded-full"
-            data-ai-hint="abstract logo"
+            className="mx-auto mb-4 rounded-lg" // Changed to rounded-lg for a bit more modern feel
+            data-ai-hint="abstract geometric logo"
           />
           <CardTitle className="text-3xl font-bold">Welcome to PromptCraft Pro</CardTitle>
           <CardDescription>Sign in to access your personalized prompt library and features.</CardDescription>
@@ -68,8 +66,8 @@ export default function LoginPage() {
           </Button>
           <p className="mt-6 text-center text-xs text-muted-foreground">
             By signing in, you agree to our 
-            <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary ml-1">Terms of Service</a> and 
-            <a href="/privacy_policy.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary ml-1">Privacy Policy</a>.
+            <Link href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary ml-1">Terms of Service</Link> and 
+            <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary ml-1">Privacy Policy</Link>.
           </p>
         </CardContent>
       </Card>
