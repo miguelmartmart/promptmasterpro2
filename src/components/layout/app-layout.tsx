@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Lightbulb, Heart, UserCog, Settings, Sparkles, Menu, LogIn, LogOut, ShieldQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset, useSidebar } from '@/components/ui/sidebar'; // Removed useSidebar from here, will get from context or direct import
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,7 +28,7 @@ const authenticatedNavItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isMobileHook = useIsMobile(); // Renamed to avoid conflict if useSidebar is re-added for other reasons
+  const isMobile = useIsMobile();
   const { user, loadingAuth, signOutUser, signInWithGoogle } = useAuth();
   
   const [showAd, setShowAd] = useState(false);
@@ -36,13 +36,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setIsClient(true); // Component has mounted on client
-    // Determine if ad should be shown only on the client
-    if (Math.random() < 0.08) {
-      setShowAd(true);
-    } else {
-      setShowAd(false);
+  }, []);
+
+  useEffect(() => {
+    // Determine if ad should be shown only on the client, after mount
+    if (isClient) {
+      if (Math.random() < 0.08) {
+        setShowAd(true);
+      } else {
+        setShowAd(false);
+      }
     }
-  }, [pathname]); // Re-evaluate on path change if needed, or empty array if only on mount
+  }, [isClient, pathname]); // Re-evaluate on path change or when isClient becomes true
 
   const handleLogin = async () => {
     if (pathname === '/login') {
@@ -54,10 +59,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItemsToDisplay = user ? [...publicNavItems, ...authenticatedNavItems] : publicNavItems;
 
-  const UserAvatarButton = () => {
-    if (!isClient) { // Prevents rendering during SSR or before client mount for auth-dependent UI
-      return <Skeleton className="h-10 w-10 rounded-full" />;
-    }
+  const UserAvatarButtonContent = () => {
     if (loadingAuth) {
       return <Skeleton className="h-10 w-10 rounded-full" />;
     }
@@ -99,13 +101,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </Button>
     );
   };
+  
+  const SidebarFooterLoginButton = () => {
+    if(loadingAuth) {
+      return <Skeleton className="h-10 w-full rounded-md" />;
+    }
+    if (!user) {
+      return <Button onClick={handleLogin} className="w-full"><LogIn className="mr-2 h-4 w-4" />Login</Button>;
+    }
+    return null; // Render nothing if user is logged in or still loading for this specific slot
+  }
 
   return (
-    <SidebarProvider defaultOpen={!isMobileHook} open={!isMobileHook}>
+    <SidebarProvider defaultOpen={!isMobile} open={!isMobile}>
       <Sidebar collapsible="icon" variant="sidebar" side="left">
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-sidebar-primary-foreground hover:text-sidebar-accent-foreground transition-colors">
-            <Image src="https://placehold.co/32x32.png?text=PC" alt="PromptCraft Pro Logo" width={32} height={32} data-ai-hint="abstract geometric" />
+            <Image src="https://placehold.co/120x40.png?text=PromptCraft" alt="PromptCraft Pro Logo" width={32} height={32} data-ai-hint="abstract geometric" className="group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8"/>
             <span className="group-data-[collapsible=icon]:hidden">PromptCraft Pro</span>
           </Link>
         </SidebarHeader>
@@ -134,8 +146,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenuButton>
           </Link>
           <div className="group-data-[collapsible=icon]:hidden">
-            {isClient && loadingAuth && <Skeleton className="h-10 w-full rounded-md" /> }
-            {isClient && !loadingAuth && !user && <Button onClick={handleLogin} className="w-full"><LogIn className="mr-2 h-4 w-4" />Login</Button> }
+            {isClient ? <SidebarFooterLoginButton /> : <Skeleton className="h-10 w-full rounded-md" />}
           </div>
         </SidebarFooter>
       </Sidebar>
@@ -149,12 +160,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   pathname === '/login' ? 'Login' :
                   pathname === '/settings' ? 'Settings' :
                   pathname === '/account-deletion' ? 'Account Deletion' :
-                  pathname === '/privacy' ? 'Privacy Policy' : // Added this for completeness
-                  pathname === '/terms' ? 'Terms of Service' : // Added this for completeness
+                  pathname === '/privacy' ? 'Privacy Policy' : 
+                  pathname === '/terms' ? 'Terms of Service' : 
                   'PromptCraft Pro')}
              </h1>
           </div>
-          <UserAvatarButton />
+          {isClient ? <UserAvatarButtonContent /> : <Skeleton className="h-10 w-10 rounded-full" />}
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
