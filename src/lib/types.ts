@@ -1,3 +1,4 @@
+
 export interface Prompt {
   id: string;
   title: string;
@@ -12,7 +13,7 @@ export interface Prompt {
   isFavorite?: boolean; // Added for client-side state
 }
 
-export const PromptCategories = ["Marketing", "Development", "Writing", "Art", "Productivity", "Education", "Fun"] as const;
+export const PromptCategories = ["Marketing", "Development", "Writing", "Art", "Productivity", "Education", "Fun", "Image Generation", "Video Generation", "Code Generation", "Research"] as const;
 export type PromptCategory = typeof PromptCategories[number];
 
 export const PromptLanguages = {
@@ -25,3 +26,4 @@ export type PromptLanguageName = typeof PromptLanguages[PromptLanguageCode];
 
 export const AIModels = ["Gemini 1.5 Flash", "GPT-4o", "Claude 3", "Llama 3 8B", "Other"] as const;
 export type AIModel = typeof AIModels[number];
+

@@ -1,3 +1,4 @@
+
 import type { Prompt } from '@/lib/types';
 
 export const mockPrompts: Prompt[] = [
@@ -59,5 +60,42 @@ export const mockPrompts: Prompt[] = [
     createdBy: 'community',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+  },
+  {
+    id: '6',
+    title: 'Photorealistic image of a cat astronaut',
+    content: 'Generate a highly detailed, photorealistic image of a cat wearing a vintage astronaut suit, floating in space with Earth in the background. Focus on realistic fur texture, reflections on the helmet visor, and dramatic lighting.',
+    category: 'Image Generation',
+    language: 'en',
+    aiModel: 'Gemini 1.5 Flash',
+    tags: ['photorealism', 'cat', 'astronaut', 'space', 'image'],
+    createdBy: 'official',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
+  },
+  {
+    id: '7',
+    title: 'Función Python para invertir cadena',
+    content: 'Escribe una función en Python que tome una cadena de texto como entrada y devuelva la cadena invertida. Incluye un ejemplo de uso y comentarios explicando la lógica.',
+    category: 'Code Generation',
+    language: 'es',
+    aiModel: 'Claude 3',
+    tags: ['python', 'función', 'string', 'coding', 'desarrollo'],
+    createdBy: 'community',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(), // 1 hour ago
+  },
+  {
+    id: '8',
+    title: 'Summarize impact of AI on climate change',
+    content: 'Provide a concise summary of the dual impact of Artificial Intelligence on climate change. Include both positive contributions (e.g., optimizing energy grids, climate modeling) and negative aspects (e.g., energy consumption of AI models). Cite 2-3 reliable sources from the last two years.',
+    category: 'Research',
+    language: 'en',
+    aiModel: 'Other',
+    tags: ['AI', 'climate change', 'summary', 'research', 'environment'],
+    createdBy: 'admin',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
   }
 ];
+

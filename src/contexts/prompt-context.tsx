@@ -25,7 +25,7 @@ const initialState: PromptState = {
   prompts: [],
   favorites: new Set(),
   isLoading: true,
-  categories: ["Marketing", "Development", "Writing", "Art", "Productivity", "Education", "Fun"],
+  categories: ["Marketing", "Development", "Writing", "Art", "Productivity", "Education", "Fun", "Image Generation", "Video Generation", "Code Generation", "Research"],
   languages: { 'en': 'English', 'es': 'Español', 'pt-BR': 'Português (Brasil)' },
   aiModels: ["Gemini 1.5 Flash", "GPT-4o", "Claude 3", "Llama 3 8B", "Other"],
 };
@@ -135,3 +135,4 @@ export const usePrompts = () => {
   }
   return context;
 };
+
