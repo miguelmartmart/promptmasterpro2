@@ -116,6 +116,14 @@ If you already have an IAM user:
    - **Access Key ID**: Paste the AWS Access Key ID
    - **Secret Access Key**: Paste the AWS Secret Access Key
    - **Region**: Select the region where you want to use Transcribe (e.g., `us-east-1`, `us-west-2`, `eu-west-1`)
+   
+   > ⚠️ **IMPORTANT - Region Selection**: 
+   > - AWS Transcribe is not available in all regions
+   > - **Don't use** `eu-south-2` (Spain) - may not have full support yet
+   > - **Recommended European regions**: `eu-west-1` (Ireland) or `eu-central-1` (Frankfurt)
+   > - **Recommended US regions**: `us-east-1` (Virginia) or `us-west-2` (Oregon)
+   > - Check availability at: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+
 6. Click **"Save"**
 
 ### Step 2: Use the AWS Transcribe Node
@@ -215,6 +223,59 @@ AWS Transcribe needs S3 access to:
 - Go to IAM → Users → Your user → Permissions
 - Verify it has the `AmazonTranscribeFullAccess` policy or a custom policy with necessary permissions
 - Ensure it also has S3 permissions
+
+### Error: "Forbidden" when testing connection in n8n
+**Problem**: Credentials are rejected when trying to connect from n8n.
+**Common causes**:
+
+1. **Region not available or enabled**:
+   - AWS Transcribe is not available in all regions
+   - Region `eu-south-2` (Spain) may not have Transcribe enabled yet
+   - **Solution**: Use a fully supported region like:
+     - `eu-west-1` (Ireland)
+     - `eu-central-1` (Frankfurt)
+     - `us-east-1` (N. Virginia)
+     - `us-west-2` (Oregon)
+
+2. **IAM user without correct permissions**:
+   - User may exist but lack necessary policies
+   - **Solution**: 
+     - Go to IAM → Users → [Your user] → Permissions
+     - Verify it has at least `AmazonTranscribeFullAccess`
+     - Also add S3 permissions if missing
+
+3. **Credentials copied incorrectly**:
+   - Extra spaces when copying/pasting
+   - Hidden characters or line breaks
+   - **Solution**:
+     - Re-copy the Access Key ID without spaces
+     - Regenerate the Secret Access Key if needed
+
+4. **MFA (Multi-Factor Authentication) required**:
+   - If your AWS account requires MFA, you need temporary credentials
+   - **Solution**: Use "Temporary Security Credentials" in n8n
+
+**How to verify your credentials**:
+
+You can test your credentials using AWS CLI before configuring n8n:
+
+```bash
+# Install AWS CLI if you don't have it
+# On Linux/Mac:
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+# Configure your credentials
+aws configure
+# Enter: Access Key ID, Secret Access Key, region (e.g., eu-west-1)
+
+# Test the connection by listing transcription jobs
+aws transcribe list-transcription-jobs --region eu-west-1
+
+# If it works, you'll see a JSON response (may be empty if no jobs exist)
+# If it fails, you'll see a specific error that will help diagnose
+```
 
 ### Error: "BadRequestException: The media format is not supported"
 **Problem**: The audio file format is not supported.
