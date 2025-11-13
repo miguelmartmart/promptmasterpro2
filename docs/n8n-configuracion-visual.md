@@ -52,6 +52,62 @@
 
 ---
 
+### ✅ CONFIGURACIÓN ALTERNATIVA (Si la primera no funciona)
+
+```
+╔════════════════════════════════════════════════════════╗
+║          n8n - PostgreSQL Credential                   ║
+╠════════════════════════════════════════════════════════╣
+║                                                        ║
+║  Credential Name: Neon PostgreSQL                      ║
+║                                                        ║
+║  ┌──────────────────────────────────────────────┐    ║
+║  │ Connection                                    │    ║
+║  ├──────────────────────────────────────────────┤    ║
+║  │ Host                                          │    ║
+║  │ ep-lucky-leaf-abc8apus-pooler...neon.tech   │    ║
+║  │                                               │    ║
+║  │ Database                                      │    ║
+║  │ neondb                                        │    ║
+║  │                                               │    ║
+║  │ User                                          │    ║
+║  │ neondb_owner                                  │    ║
+║  │                                               │    ║
+║  │ Password                                      │    ║
+║  │ ••••••••••••••••••••                         │    ║
+║  │                                               │    ║
+║  │ Port                                          │    ║
+║  │ 5432                                          │    ║
+║  └──────────────────────────────────────────────┘    ║
+║                                                        ║
+║  ┌──────────────────────────────────────────────┐    ║
+║  │ SSL Options                                   │    ║
+║  ├──────────────────────────────────────────────┤    ║
+║  │ ☑️ Enable SSL                                 │    ║
+║  │ ☑️ Ignore SSL Issues  ⬅️ ACTIVADO            │    ║
+║  └──────────────────────────────────────────────┘    ║
+║                                                        ║
+║  ┌──────────────────────────────────────────────┐    ║
+║  │ SSH Tunnel                                    │    ║
+║  ├──────────────────────────────────────────────┤    ║
+║  │ ☐ Use SSH Tunnel (DESACTIVADO)               │    ║
+║  └──────────────────────────────────────────────┘    ║
+║                                                        ║
+║  [Test Credential]  [Save]                            ║
+║                                                        ║
+║  ✅ Connection successful                              ║
+║                                                        ║
+╚════════════════════════════════════════════════════════╝
+```
+
+**💡 Nota importante:**
+- "Ignore SSL Issues" NO desactiva el cifrado SSL/TLS
+- Solo omite la verificación del certificado
+- La conexión sigue siendo segura y cifrada
+- Esto es necesario en algunas versiones de n8n
+
+---
+
 ### ❌ CONFIGURACIÓN INCORRECTA (No usar)
 
 ```

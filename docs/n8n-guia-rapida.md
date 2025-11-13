@@ -210,20 +210,86 @@ Las credenciales mostradas son de ejemplo. Obtén las tuyas en:
 
 ## 🆘 Solución de Problemas
 
+### ⚠️ "Couldn't connect with these settings" (Error más común)
+
+Si ves este error después de configurar todo correctamente, prueba estas soluciones **EN ESTE ORDEN**:
+
+#### Solución 1: Verificar configuración básica
+- ✅ Host correcto: `ep-lucky-leaf-abc8apus-pooler.eu-west-2.aws.neon.tech`
+- ✅ Puerto: `5432`
+- ✅ Database: `neondb`
+- ✅ User: `neondb_owner`
+- ✅ Password correcta (sin espacios extra)
+- ❌ SSH Tunnel: DESACTIVADO (debe estar sin marcar)
+
+#### Solución 2: Probar con "Ignore SSL Issues"
+A veces, dependiendo de la versión de n8n o la configuración de red, es necesario activar temporalmente esta opción:
+
+1. Marca **☑️ Ignore SSL Issues (Insecure)**
+2. Haz clic en **"Test Credential"**
+3. Si funciona ✅, guarda la credencial así
+
+**Nota:** Aunque dice "Insecure", la conexión sigue siendo segura porque Neon usa SSL/TLS. Esta opción solo omite la verificación del certificado, no desactiva el cifrado.
+
+#### Solución 3: Verificar configuración SSL
+Si la Solución 2 no funciona, intenta estas combinaciones:
+
+**Opción A** (más común):
+```
+☑️ Enable SSL
+☑️ Ignore SSL Issues
+```
+
+**Opción B** (alternativa):
+```
+☐ Enable SSL (desactivado)
+☐ Ignore SSL Issues (desactivado)
+```
+
+#### Solución 4: Aumentar timeout
+- Connection Timeout: `15000` (15 segundos)
+- Vuelve a probar
+
+#### Solución 5: Verificar desde consola
+Prueba conectar desde otro lugar para confirmar que las credenciales funcionan:
+
+```bash
+# Desde terminal Linux/Mac/Windows (con psql instalado)
+psql '******ep-lucky-leaf-abc8apus-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require'
+```
+
+Si esto funciona pero n8n no, el problema es específico de n8n.
+
+#### Solución 6: Usar connection string directa (n8n Cloud/Enterprise)
+En lugar de campos separados, algunas versiones de n8n permiten usar connection string:
+
+```
+postgresql://neondb_owner:npg_C74UplLehMdV@ep-lucky-leaf-abc8apus-pooler.eu-west-2.aws.neon.tech:5432/neondb?sslmode=require
+```
+
 ### "Connection timeout"
 - Verifica tu conexión a internet
 - Aumenta Connection Timeout a 15000ms
+- Verifica que tu firewall no bloquee el puerto 5432
 
 ### "SSL connection required"
 - Asegúrate de marcar "Enable SSL"
+- Si no funciona, prueba con "Ignore SSL Issues" activado
 
 ### "Authentication failed"
 - Verifica usuario y password
 - Copia y pega desde Neon Console para evitar errores
+- Asegúrate de no tener espacios antes/después del password
 
 ### "Host not found"
 - Verifica que el host sea exactamente el de Neon
 - No uses `localhost` ni `127.0.0.1`
+- Verifica que tengas acceso a internet
+
+### "No testing function found for this credential"
+- Este mensaje es normal en algunas versiones de n8n
+- Ignora este mensaje y prueba usar la credencial en un workflow
+- Si el workflow funciona, la credencial está bien configurada
 
 ---
 

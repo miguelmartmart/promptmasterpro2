@@ -36,8 +36,11 @@ SSH Tunnel: ❌ DESACTIVADO
 ## ❌ Errores Comunes
 
 ### Error: "Couldn't connect"
-**Causa**: SSH Tunnel activado
-**Solución**: Desactiva SSH Tunnel
+**Causas y Soluciones**:
+1. SSH Tunnel activado → Desactívalo
+2. Credenciales incorrectas → Copia desde Neon Console
+3. SSL mal configurado → Prueba con "Ignore SSL Issues" ✅
+4. Timeout corto → Aumenta a 15000ms
 
 ### Error: "SSL required"
 **Causa**: SSL desactivado
@@ -46,6 +49,14 @@ SSH Tunnel: ❌ DESACTIVADO
 ### Error: "Host not found"
 **Causa**: Host incorrecto (127.0.0.1)
 **Solución**: Usa el host de Neon
+
+### 💡 Tip: Si nada funciona
+Prueba esta configuración:
+```
+☑️ Enable SSL
+☑️ Ignore SSL Issues
+```
+Aunque diga "Insecure", sigue siendo seguro.
 
 ---
 

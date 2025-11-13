@@ -84,11 +84,15 @@ R: Sí, funciona igual en Cloud y Self-hosted.
 
 ## 🆘 Ayuda Rápida
 
-### Si tienes error de conexión:
+### Si tienes error "Couldn't connect with these settings":
 1. ✅ Verifica que SSL esté activado
-2. ❌ Desactiva SSH Tunnel
+2. ❌ Desactiva SSH Tunnel completamente
 3. 📋 Copia y pega el Host exacto (no escribas a mano)
-4. 🔑 Verifica usuario y contraseña
+4. 🔑 Verifica usuario y contraseña sin espacios extra
+5. 🔧 **Si sigue sin funcionar:** Prueba activar "☑️ Ignore SSL Issues"
+   - Aunque dice "Insecure", la conexión sigue cifrada con SSL/TLS
+   - Esto solo omite la verificación del certificado, no el cifrado
+   - Es necesario en algunas versiones de n8n
 
 ### Si necesitas tus propias credenciales:
 1. Ve a [Neon Console](https://console.neon.tech)
