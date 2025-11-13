@@ -9,8 +9,11 @@ To get started, take a look at `src/app/page.tsx`.
 
 This project uses PostgreSQL (Neon) as the database. See detailed setup instructions:
 
-- **[Database Connection Guide](./docs/database-setup.md)** - Connect from PowerShell, n8n, and Next.js
-- **[n8n Integration Guide](./docs/n8n-setup.md)** - Configure n8n workflows with the database
+### 📖 Guías en Español:
+- **[🚀 n8n - Guía Rápida](./docs/n8n-guia-rapida.md)** - Configuración paso a paso de n8n (COMIENZA AQUÍ)
+- **[📸 n8n - Configuración Visual](./docs/n8n-configuracion-visual.md)** - Diagramas y ejemplos visuales
+- **[📚 Guía Completa de Base de Datos](./docs/database-setup.md)** - PowerShell, n8n y Next.js
+- **[🔧 n8n - Guía Avanzada](./docs/n8n-setup.md)** - Workflows y ejemplos avanzados
 
 ### Quick Start
 
